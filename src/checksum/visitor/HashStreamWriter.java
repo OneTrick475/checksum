@@ -3,6 +3,8 @@ package checksum.visitor;
 import checksum.ChecksumCalculator;
 import checksum.file.Directory;
 import checksum.file.RegFile;
+import checksum.observer.Observable;
+import checksum.observer.Observer;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +13,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.file.Files;
 
-public class HashStreamWriter implements Visitor {
+public class HashStreamWriter extends Observable implements Visitor {
     private ChecksumCalculator calculator;
     private Writer writer;
 
@@ -23,6 +25,8 @@ public class HashStreamWriter implements Visitor {
     @Override
     public void visitFile(RegFile file) {
         try (InputStream is = Files.newInputStream(file.getPath())) {
+            notifyObservers(file.getPath().toString());
+
             writer.write(calculator.calculate(is));
 
             writer.write(" ");
@@ -47,4 +51,15 @@ public class HashStreamWriter implements Visitor {
             }
         }
     }
+
+    @Override
+    public void subscribe(Observer observer) {
+        // Call the parent function to register
+        // observer for our own object.
+        super.subscribe(observer);
+
+        // Attach observer to the calculator too.
+        calculator.subscribe(observer);
+    }
+
 }

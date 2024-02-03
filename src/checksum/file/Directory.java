@@ -14,10 +14,10 @@ public class Directory extends AbstractFile {
         long length = 0;
 
         for (File file : directory.listFiles()) {
-            if (file.isFile()) {
-                length += file.length();
-            } else {
+            if (file.isDirectory()) {
                 length += getDirectorySize(file);
+            } else if (file.isFile()) {
+                length += file.length();
             }
         }
         return length;
