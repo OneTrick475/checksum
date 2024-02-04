@@ -12,10 +12,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public class HashStreamWriter extends Observable implements Visitor {
     private ChecksumCalculator calculator;
     private Writer writer;
+
+    private boolean isScanning;
+
+    private Queue<File> files = new ArrayDeque<>();
 
     public HashStreamWriter(ChecksumCalculator calculator, Writer writer) {
         this.calculator = calculator;
@@ -41,15 +47,25 @@ public class HashStreamWriter extends Observable implements Visitor {
 
     @Override
     public void visitDirectory(Directory directory) {
+        isScanning = true;
+
         File dir = new File(directory.getPath().toString());
 
-        for (File file : dir.listFiles()) {
+        for(File file : dir.listFiles()) {
+            files.add(file);
+        }
+
+        while(!files.isEmpty()) {
+            File file = files.poll();
+
             if (file.isFile()) {
                 visitFile(new RegFile(file.toPath()));
             } else {
                 visitDirectory(new Directory(file.toPath()));
             }
         }
+
+        isScanning = false;
     }
 
     @Override
