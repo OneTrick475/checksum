@@ -28,6 +28,15 @@ public class HashStreamWriter extends Observable implements Visitor {
         this.writer = writer;
     }
 
+    public HashStreamMemento createSnapshot(HashStreamWriter hashStreamWriter, boolean isScanning, Queue<File> files) {
+        return new HashStreamMemento(this, isScanning, files);
+    }
+
+    public void setState(boolean isScanning, Queue<File> files) {
+        this.isScanning = isScanning;
+        this.files = files;
+    }
+
     @Override
     public void visitFile(RegFile file) {
         try (InputStream is = Files.newInputStream(file.getPath())) {
@@ -51,11 +60,11 @@ public class HashStreamWriter extends Observable implements Visitor {
 
         File dir = new File(directory.getPath().toString());
 
-        for(File file : dir.listFiles()) {
+        for (File file : dir.listFiles()) {
             files.add(file);
         }
 
-        while(!files.isEmpty()) {
+        while (!files.isEmpty()) {
             File file = files.poll();
 
             if (file.isFile()) {
